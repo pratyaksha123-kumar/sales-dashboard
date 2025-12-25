@@ -25,18 +25,20 @@ const formatCurrency = (value: number) => {
 const CustomTooltip = ({ active, payload, label }: any) => {
   if (active && payload && payload.length) {
     return (
-      <div className="bg-card border border-border rounded-lg p-3 shadow-lg">
-        <p className="font-semibold text-card-foreground mb-2">{label}</p>
-        <div className="space-y-1">
-          <p className="text-sm">
+      <div className="bg-card border border-border/50 rounded-xl p-4 shadow-xl backdrop-blur-sm">
+        <p className="font-bold text-card-foreground mb-3 text-base">{label}</p>
+        <div className="space-y-2">
+          <p className="text-sm flex items-center gap-2">
+            <span className="w-2 h-2 rounded-full bg-primary"></span>
             <span className="text-muted-foreground">Sales: </span>
-            <span className="font-medium text-primary">
+            <span className="font-semibold text-primary">
               {formatCurrency(payload[0].value)}
             </span>
           </p>
-          <p className="text-sm">
+          <p className="text-sm flex items-center gap-2">
+            <span className="w-2 h-2 rounded-full bg-chart-secondary"></span>
             <span className="text-muted-foreground">Orders: </span>
-            <span className="font-medium">{payload[1]?.payload?.orders || 0}</span>
+            <span className="font-semibold text-foreground">{payload[0]?.payload?.orders || 0}</span>
           </p>
         </div>
       </div>
@@ -46,47 +48,53 @@ const CustomTooltip = ({ active, payload, label }: any) => {
 };
 
 export function SalesTrendChart({ data }: SalesTrendChartProps) {
-  // Filter out months with 0 sales for current year (2025)
   const filteredData = data.filter((item) => item.sales > 0);
 
   return (
-    <div className="bg-card rounded-lg p-6 card-shadow animate-fade-in" style={{ animationDelay: '200ms' }}>
+    <div className="rounded-xl p-6 animate-fade-in">
       <div className="mb-6">
-        <h3 className="text-lg font-semibold text-card-foreground">Monthly Sales Trend</h3>
+        <h3 className="text-lg font-bold text-foreground">Monthly Sales Trend</h3>
         <p className="text-sm text-muted-foreground">Revenue performance over time</p>
       </div>
-      <div className="h-[300px]">
+      <div className="h-[350px]">
         <ResponsiveContainer width="100%" height="100%">
           <AreaChart data={filteredData} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
             <defs>
               <linearGradient id="salesGradient" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="5%" stopColor="hsl(239, 84%, 67%)" stopOpacity={0.3} />
-                <stop offset="95%" stopColor="hsl(239, 84%, 67%)" stopOpacity={0} />
+                <stop offset="0%" stopColor="hsl(var(--primary))" stopOpacity={0.4} />
+                <stop offset="50%" stopColor="hsl(var(--primary))" stopOpacity={0.15} />
+                <stop offset="100%" stopColor="hsl(var(--primary))" stopOpacity={0} />
+              </linearGradient>
+              <linearGradient id="lineGradient" x1="0" y1="0" x2="1" y2="0">
+                <stop offset="0%" stopColor="hsl(var(--primary))" />
+                <stop offset="100%" stopColor="hsl(var(--chart-secondary))" />
               </linearGradient>
             </defs>
-            <CartesianGrid strokeDasharray="3 3" stroke="hsl(220, 13%, 91%)" vertical={false} />
+            <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" strokeOpacity={0.5} vertical={false} />
             <XAxis
               dataKey="month"
               axisLine={false}
               tickLine={false}
-              tick={{ fill: 'hsl(220, 9%, 46%)', fontSize: 12 }}
+              tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 12 }}
               dy={10}
             />
             <YAxis
               axisLine={false}
               tickLine={false}
-              tick={{ fill: 'hsl(220, 9%, 46%)', fontSize: 12 }}
+              tick={{ fill: 'hsl(var(--muted-foreground))', fontSize: 12 }}
               tickFormatter={formatCurrency}
               dx={-10}
-              width={60}
+              width={65}
             />
             <Tooltip content={<CustomTooltip />} />
             <Area
               type="monotone"
               dataKey="sales"
-              stroke="hsl(239, 84%, 67%)"
-              strokeWidth={2}
+              stroke="url(#lineGradient)"
+              strokeWidth={3}
               fill="url(#salesGradient)"
+              dot={{ fill: 'hsl(var(--primary))', strokeWidth: 2, stroke: 'hsl(var(--card))', r: 4 }}
+              activeDot={{ fill: 'hsl(var(--primary))', strokeWidth: 3, stroke: 'hsl(var(--card))', r: 6 }}
             />
           </AreaChart>
         </ResponsiveContainer>

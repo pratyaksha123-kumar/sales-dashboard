@@ -5,10 +5,10 @@ interface CategoryPieChartProps {
 }
 
 const COLORS = [
-  'hsl(239, 84%, 67%)',
-  'hsl(262, 83%, 58%)',
-  'hsl(142, 76%, 36%)',
-  'hsl(38, 92%, 50%)',
+  'hsl(var(--primary))',
+  'hsl(var(--chart-secondary))',
+  'hsl(var(--chart-success))',
+  'hsl(var(--chart-warning))',
 ];
 
 const formatCurrency = (value: number) => {
@@ -22,14 +22,16 @@ const CustomTooltip = ({ active, payload }: any) => {
   if (active && payload && payload.length) {
     const data = payload[0].payload;
     return (
-      <div className="bg-card border border-border rounded-lg p-3 shadow-lg">
-        <p className="font-semibold text-card-foreground">{data.name}</p>
-        <p className="text-sm text-muted-foreground">
-          Share: <span className="font-medium text-primary">{data.value}%</span>
-        </p>
-        <p className="text-sm text-muted-foreground">
-          Amount: <span className="font-medium">{formatCurrency(data.amount)}</span>
-        </p>
+      <div className="bg-card border border-border/50 rounded-xl p-4 shadow-xl backdrop-blur-sm">
+        <p className="font-bold text-card-foreground text-base mb-2">{data.name}</p>
+        <div className="space-y-1">
+          <p className="text-sm text-muted-foreground">
+            Share: <span className="font-semibold text-primary">{data.value}%</span>
+          </p>
+          <p className="text-sm text-muted-foreground">
+            Amount: <span className="font-semibold text-foreground">{formatCurrency(data.amount)}</span>
+          </p>
+        </div>
       </div>
     );
   }
@@ -51,46 +53,69 @@ const renderCustomLabel = ({ cx, cy, midAngle, innerRadius, outerRadius, percent
       fill="white"
       textAnchor="middle"
       dominantBaseline="central"
-      className="text-xs font-medium"
+      className="text-xs font-bold"
     >
       {`${(percent * 100).toFixed(0)}%`}
     </text>
   );
 };
 
+const CustomLegend = ({ payload }: any) => {
+  return (
+    <div className="flex flex-wrap justify-center gap-4 mt-4">
+      {payload?.map((entry: any, index: number) => (
+        <div key={`legend-${index}`} className="flex items-center gap-2">
+          <div 
+            className="w-3 h-3 rounded-full" 
+            style={{ backgroundColor: entry.color }}
+          />
+          <span className="text-sm text-muted-foreground font-medium">{entry.value}</span>
+        </div>
+      ))}
+    </div>
+  );
+};
+
 export function CategoryPieChart({ data }: CategoryPieChartProps) {
   return (
-    <div className="bg-card rounded-lg p-6 card-shadow animate-fade-in" style={{ animationDelay: '300ms' }}>
-      <div className="mb-4">
-        <h3 className="text-lg font-semibold text-card-foreground">Sales by Category</h3>
+    <div className="rounded-xl p-6 animate-fade-in">
+      <div className="mb-6">
+        <h3 className="text-lg font-bold text-foreground">Sales by Category</h3>
         <p className="text-sm text-muted-foreground">Distribution across product categories</p>
       </div>
-      <div className="h-[280px]">
+      <div className="h-[350px]">
         <ResponsiveContainer width="100%" height="100%">
           <PieChart>
+            <defs>
+              {COLORS.map((color, index) => (
+                <linearGradient key={`gradient-${index}`} id={`pieGradient-${index}`} x1="0" y1="0" x2="1" y2="1">
+                  <stop offset="0%" stopColor={color} stopOpacity={1} />
+                  <stop offset="100%" stopColor={color} stopOpacity={0.8} />
+                </linearGradient>
+              ))}
+            </defs>
             <Pie
               data={data}
               cx="50%"
               cy="45%"
               labelLine={false}
               label={renderCustomLabel}
-              outerRadius={90}
-              innerRadius={45}
+              outerRadius={120}
+              innerRadius={60}
               dataKey="value"
               stroke="none"
+              paddingAngle={2}
             >
               {data.map((_, index) => (
-                <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                <Cell 
+                  key={`cell-${index}`} 
+                  fill={`url(#pieGradient-${index % COLORS.length})`}
+                  className="transition-all duration-300 hover:opacity-80"
+                />
               ))}
             </Pie>
             <Tooltip content={<CustomTooltip />} />
-            <Legend
-              verticalAlign="bottom"
-              height={36}
-              formatter={(value) => (
-                <span className="text-sm text-muted-foreground">{value}</span>
-              )}
-            />
+            <Legend content={<CustomLegend />} verticalAlign="bottom" />
           </PieChart>
         </ResponsiveContainer>
       </div>
